@@ -1,6 +1,14 @@
+import sys
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
+
+# The project is intentionally runnable directly from a source checkout.
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 @pytest.fixture
 def dataset(tmp_path):
