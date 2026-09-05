@@ -1,0 +1,16 @@
+.git
+.venv
+venv
+env
+__pycache__
+*.py[cod]
+.env
+tests
+.pytest_cache
+.ruff_cache
+logs
+DLLs
+conda-meta
+artifacts/**
+!artifacts/production/model.joblib
+!artifacts/production/metadata.json

@@ -12,7 +12,11 @@ class MongoDBClient:
 
             if MongoDBClient.client is None:
                 mongo_db_url = os.getenv(MONGODB_URL_KEY)
-                print(mongo_db_url)
+                if not mongo_db_url:
+                    raise ValueError(
+                        f"{MONGODB_URL_KEY} is required for MongoDB ingestion. "
+                        "Use the CSV CLI path when no database is configured."
+                    )
                 if "localhost" in mongo_db_url:
                     MongoDBClient.client = pymongo.MongoClient(mongo_db_url) 
                 else:

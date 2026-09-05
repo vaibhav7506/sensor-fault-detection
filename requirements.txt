@@ -1,0 +1,14 @@
+fastapi>=0.110,<1
+uvicorn[standard]>=0.27,<1
+pandas>=2.1,<3
+numpy>=2.0,<3
+scikit-learn>=1.6,<2
+imbalanced-learn>=0.12,<1
+scipy>=1.11,<2
+joblib>=1.3,<2
+pydantic>=2.6,<3
+pymongo>=4.6,<5
+python-dotenv>=1.0,<2
+pytest>=8,<9
+httpx>=0.27,<1
+ruff>=0.5,<1

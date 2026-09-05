@@ -1,0 +1,10 @@
+from fastapi.testclient import TestClient
+from sensor.platform import train_csv
+def test_api_health_prediction_and_invalid_features(dataset, tmp_path, monkeypatch):
+    _, path = dataset; train_csv(path, tmp_path); monkeypatch.setenv("MODEL_PATH", str(tmp_path / "model.joblib"))
+    from app.main import app
+    with TestClient(app) as client:
+        assert client.get("/health").json()["model_loaded"] is True
+        features = {f: 0.0 for f in client.get("/model/info").json()["features"]}
+        assert client.post("/predict", json={"features": features}).status_code == 200
+        assert client.post("/predict", json={"features": {}}).status_code == 422
