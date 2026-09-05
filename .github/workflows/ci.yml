@@ -11,5 +11,5 @@ jobs:
       # Legacy modules are retained for backwards compatibility and are
       # incrementally modernised. Lint the maintained production surface.
       - run: ruff check app sensor/platform.py sensor/cli.py tests --ignore BLE001,E701,E702,I001,C405
-      - run: pytest -q
+      - run: PYTHONPATH=. pytest -q
       - run: docker build -t sensor-fault-detection .
