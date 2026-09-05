@@ -5,7 +5,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY sensor ./sensor
 COPY app ./app
-COPY artifacts/production ./artifacts/production
+RUN mkdir -p artifacts/production
 RUN useradd --create-home appuser
 USER appuser
 EXPOSE 8000
