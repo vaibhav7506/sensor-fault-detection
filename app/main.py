@@ -6,6 +6,7 @@ from typing import Any
 import joblib
 import pandas as pd
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 class PredictionRequest(BaseModel):
@@ -27,6 +28,10 @@ async def lifespan(_: FastAPI):
     yield
 
 app = FastAPI(title="Sensor Fault Detection API", version="1.0.0", lifespan=lifespan)
+
+@app.get("/favicon.svg", include_in_schema=False)
+def favicon() -> FileResponse:
+    return FileResponse(Path(__file__).parent / "static" / "favicon.svg", media_type="image/svg+xml")
 
 @app.get("/health")
 def health() -> dict[str, Any]: return {"status": "healthy" if state.bundle else "unavailable", "model_loaded": state.bundle is not None}

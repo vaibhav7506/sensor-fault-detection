@@ -25,14 +25,14 @@ Endpoints: `GET /health`, `GET /model/info`, `POST /predict`. A prediction body 
 
 ## Configuration and deployment
 
-Copy `.env.example` locally; never commit `.env`. MongoDB variables are placeholders and the app does not require MongoDB or AWS. S3 sync is disabled with `ENABLE_S3_SYNC=false`. The Docker image bundles a verified local production artifact; train before building:
+Copy `.env.example` locally; never commit `.env`. MongoDB variables are placeholders and the app does not require MongoDB or AWS. S3 sync is disabled with `ENABLE_S3_SYNC=false`. The image deliberately does not bundle a serialized model; mount a trusted, trained artifact at runtime and set `MODEL_PATH`:
 
 ```bash
 docker build -t sensor-fault-detection .
-docker run -p 8000:8000 sensor-fault-detection
+docker run -p 8000:8000 -v "${PWD}/artifacts/production:/models:ro" -e MODEL_PATH=/models/model.joblib sensor-fault-detection
 ```
 
-CI installs, lints, tests, and builds the image. Deployment is **ready** once a trained artifact is included; no cloud deployment is claimed. Joblib artifacts must be trusted and server-configured—never accept artifact paths from API clients.
+CI installs, lints, tests, and builds the image. `GET /favicon.svg` serves the API favicon. A deployment needs a trusted trained artifact supplied through the deployment platform's private storage or volume; never accept artifact paths from API clients.
 
 ## Testing and limitations
 
