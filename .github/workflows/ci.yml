@@ -1,0 +1,15 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      # Legacy modules are retained for backwards compatibility and are
+      # incrementally modernised. Lint the maintained production surface.
+      - run: ruff check app sensor/platform.py sensor/cli.py tests --ignore BLE001,E701,E702,I001,C405
+      - run: PYTHONPATH=. pytest -q
+      - run: docker build -t sensor-fault-detection .
