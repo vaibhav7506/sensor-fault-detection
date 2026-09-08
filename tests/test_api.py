@@ -9,7 +9,8 @@ def test_api_health_prediction_and_invalid_features(dataset, tmp_path, monkeypat
         assert health.json() == {"status": "healthy", "model_loaded": True}
         home = client.get("/")
         assert home.status_code == 200
-        assert "Sensor Fault Detection API" in home.text
+        assert "Sensor Fault Detection" in home.text
+        assert "Run prediction" in home.text
         assert client.get("/ready").json() == {"status": "ready"}
         favicon = client.get("/favicon.svg")
         assert favicon.status_code == 200

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sensor Fault Detection</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #07111f; color: #e6edf7; }
+    * { box-sizing: border-box; } body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 10% 0%, #123659 0, transparent 36rem), #07111f; }
+    main { max-width: 1100px; margin: 0 auto; padding: 48px 24px 64px; }
+    header { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; margin-bottom: 40px; }
+    h1 { font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -.06em; margin: 0 0 12px; } h2 { margin-top: 0; font-size: 1.15rem; }
+    p { color: #a9b7cb; line-height: 1.6; } .eyebrow { color: #50c7ff; font-weight: 700; letter-spacing: .12em; font-size: .75rem; text-transform: uppercase; }
+    .badge { border: 1px solid #2d4663; border-radius: 999px; padding: 9px 14px; color: #bcd6ec; white-space: nowrap; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .card { background: rgba(13, 30, 49, .88); border: 1px solid #213c58; border-radius: 18px; padding: 20px; box-shadow: 0 16px 40px rgba(0,0,0,.16); }
+    .metric { font-size: 1.5rem; font-weight: 750; margin-top: 8px; } .muted { color: #91a5bd; font-size: .9rem; }
+    .workspace { display: grid; grid-template-columns: 1.3fr .7fr; gap: 20px; }
+    textarea { display: block; width: 100%; min-height: 230px; resize: vertical; background: #07111f; border: 1px solid #315675; border-radius: 12px; padding: 16px; color: #e6edf7; font: .875rem ui-monospace, SFMono-Regular, Menlo, monospace; line-height: 1.55; }
+    button, .link { display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; padding: 11px 15px; font-weight: 700; text-decoration: none; cursor: pointer; }
+    button { border: 0; background: #38bdf8; color: #052031; margin-top: 14px; } button:disabled { cursor: not-allowed; opacity: .45; }
+    .link { border: 1px solid #315675; color: #d5eaff; margin: 6px 6px 0 0; }
+    pre { min-height: 128px; overflow: auto; white-space: pre-wrap; background: #07111f; color: #c3def0; border-radius: 12px; padding: 16px; font-size: .82rem; }
+    .good { color: #4ade80; } .warn { color: #fbbf24; } .error { color: #fb7185; }
+    @media (max-width: 760px) { header, .workspace { display: block; } .badge { display: inline-block; margin-top: 16px; } .grid { grid-template-columns: 1fr; } .workspace > * { margin-bottom: 20px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div><div class="eyebrow">ML inference workspace</div><h1>Sensor Fault Detection</h1><p>Validate a sensor feature payload and run a failure prediction against the deployed model.</p></div>
+      <div class="badge" id="connection">Checking service…</div>
+    </header>
+    <section class="grid" aria-label="Service status">
+      <div class="card"><div class="muted">API service</div><div class="metric good" id="api-status">Checking…</div></div>
+      <div class="card"><div class="muted">Model readiness</div><div class="metric" id="model-status">Checking…</div></div>
+      <div class="card"><div class="muted">Prediction endpoint</div><div class="metric" id="prediction-status">Waiting</div></div>
+    </section>
+    <section class="workspace">
+      <article class="card"><h2>Prediction input</h2><p class="muted">Paste a JSON object with the model’s exact numeric feature names and values.</p>
+        <textarea id="features" aria-label="Sensor features JSON" spellcheck="false">{
+  "aa_000": 0
+}</textarea><button id="predict" type="button">Run prediction</button>
+      </article>
+      <aside class="card"><h2>Result</h2><pre id="result" aria-live="polite">Waiting for input…</pre><h2>Resources</h2>
+        <a class="link" href="/docs">API documentation</a><a class="link" href="/health">Service health</a><a class="link" href="/model/info">Model metadata</a>
+      </aside>
+    </section>
+  </main>
+  <script>
+    const result = document.querySelector('#result');
+    const modelStatus = document.querySelector('#model-status');
+    const apiStatus = document.querySelector('#api-status');
+    const connection = document.querySelector('#connection');
+    const predict = document.querySelector('#predict');
+    async function initialize() {
+      try {
+        const health = await fetch('/health').then(r => r.json());
+        apiStatus.textContent = health.status === 'healthy' ? 'Online' : health.status;
+        connection.textContent = 'Service online'; connection.className = 'badge good';
+        const model = await fetch('/model/info');
+        if (model.ok) { modelStatus.textContent = 'Ready'; modelStatus.className = 'metric good'; }
+        else { modelStatus.textContent = 'Not loaded'; modelStatus.className = 'metric warn'; predict.disabled = true; result.textContent = 'A trusted trained model artifact must be configured before predictions can run.'; }
+      } catch (error) { apiStatus.textContent = 'Unavailable'; apiStatus.className = 'metric error'; connection.textContent = 'Service unavailable'; connection.className = 'badge error'; result.textContent = String(error); }
+    }
+    predict.addEventListener('click', async () => {
+      try {
+        const features = JSON.parse(document.querySelector('#features').value);
+        const response = await fetch('/predict', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({features}) });
+        const body = await response.json(); result.textContent = JSON.stringify(body, null, 2);
+        document.querySelector('#prediction-status').textContent = response.ok ? 'Complete' : 'Needs review';
+      } catch (error) { result.textContent = `Input error: ${error.message}`; }
+    });
+    initialize();
+  </script>
+</body>
+</html>
