@@ -1,0 +1,7 @@
+{
+  "features": {
+    "sensor_pressure": 100,
+    "sensor_temperature": 91,
+    "vibration_rms": 8.9
+  }
+}
