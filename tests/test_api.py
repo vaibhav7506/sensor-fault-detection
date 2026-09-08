@@ -4,7 +4,13 @@ def test_api_health_prediction_and_invalid_features(dataset, tmp_path, monkeypat
     _, path = dataset; train_csv(path, tmp_path); monkeypatch.setenv("MODEL_PATH", str(tmp_path / "model.joblib"))
     from app.main import app
     with TestClient(app) as client:
-        assert client.get("/health").json()["model_loaded"] is True
+        health = client.get("/health")
+        assert health.status_code == 200
+        assert health.json() == {"status": "healthy", "model_loaded": True}
+        home = client.get("/")
+        assert home.status_code == 200
+        assert "Sensor Fault Detection API" in home.text
+        assert client.get("/ready").json() == {"status": "ready"}
         favicon = client.get("/favicon.svg")
         assert favicon.status_code == 200
         assert favicon.headers["content-type"] == "image/svg+xml"
